@@ -271,6 +271,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         	
         	assert sendLocalReadhandler.get() == distMap.size();
         	tr = new StartReadAndShuffleResponse(1, 1);
+            //tr = new StartReadAndShuffleResponse(travelId, 2, rows);
         }
 
         logger.info("@daidong debug: " + "local read and shuffle finished!");

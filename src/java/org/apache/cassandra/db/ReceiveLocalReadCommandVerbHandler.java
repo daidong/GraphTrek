@@ -24,7 +24,7 @@ public class ReceiveLocalReadCommandVerbHandler implements IVerbHandler<SendLoca
         for (ReadCommand rc : command.reads){
         	str += rc;
         }
-        //logger.info(str);
+        logger.info(str);
         
         MessagingService.currentLocalReadCommands.put(command.travelId, command.reads);
         MessagingService.currentRunningStep.put(command.travelId, command.stepId);

@@ -69,6 +69,7 @@ import org.apache.cassandra.sink.SinkManager;
 import org.apache.cassandra.tracing.Tracing;
 import org.apache.cassandra.triggers.TriggerExecutor;
 import org.apache.cassandra.utils.*;
+import org.apache.cassandra.tools.*;
 
 public class StorageProxy implements StorageProxyMBean
 {
@@ -1227,15 +1228,21 @@ public class StorageProxy implements StorageProxyMBean
     	List<Row> rows = new ArrayList<Row>();
     	
     	//first step, we send the travel command to all servers.
-    	//@TODO we need to have a way to get all the relevant servers. The last option will be to read from configuration files.
-    	List<ReadCommand> startReadCommands = command.getStartReadCommands();
-		Set<InetAddress> set = new HashSet<InetAddress>();
-		for (ReadCommand testRead : startReadCommands){
-    		Keyspace keyspace = Keyspace.open(testRead.ksName);
+    	//@TODO we need to have a way to get all the relevant servers. The last option will be to read from configuration files
+        List<ReadCommand> startReadCommands = command.getStartReadCommands();
+
+        Set<InetAddress> set = StorageService.instance.getLiveNodesINet();
+
+        //Set<InetAddress> set = new HashSet<InetAddress>();
+
+        /*
+        for (ReadCommand testRead : startReadCommands){
+            Keyspace keyspace = Keyspace.open(testRead.ksName);
     		List<InetAddress> allReplicas = StorageProxy.getLiveSortedEndpoints(keyspace, testRead.key);
     		List<InetAddress> targetReplicas = consistencyLevel.filterForQuery(keyspace, allReplicas, ReadRepairDecision.NONE);
     		set.addAll(targetReplicas);
 		}
+		*/
 		List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(set);
 		for (InetAddress s : guessedAllServers)
 			logger.info("@daidong debug: " + "in StorageProxy.executeTravel server: " + s);

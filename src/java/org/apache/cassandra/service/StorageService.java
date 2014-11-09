@@ -2138,6 +2138,8 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
         return stringify(Gossiper.instance.getLiveMembers());
     }
 
+    public Set<InetAddress> getLiveNodesINet() {return Gossiper.instance.getLiveMembers();}
+
     public List<String> getUnreachableNodes()
     {
         return stringify(Gossiper.instance.getUnreachableMembers());
