@@ -233,7 +233,8 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         		//@TODO @daidong. To keep this correct, we need to always keep replica = 1;
             	List<InetAddress> allReplicas = StorageProxy.getLiveSortedEndpoints(keyspace, k);
         		InetAddress targetServer = allReplicas.subList(0, 1).get(0); 
-        		
+        		logger.info("target server for key: " + k.toString() + " address: " + targetServer.toString());
+                
         		if (!distMap.containsKey(targetServer)){
         			List<ByteBuffer> keyToThisServer = new ArrayList<ByteBuffer>();
         			keyToThisServer.add(k);
@@ -244,10 +245,10 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         		}
         	}
 
-        	int readCommandSize = 0;
+        	//int readCommandSize = 0;
         	for (InetAddress rcTarget : distMap.keySet()){
         		List<ByteBuffer> keyToThisServer = distMap.get(rcTarget);
-        		readCommandSize += keyToThisServer.size();
+        		//readCommandSize += keyToThisServer.size();
         	}
         	
     		SendLocalReadCallback<SendLocalReadResponse, Integer> sendLocalReadhandler = new SendLocalReadCallback<>(distMap.size());
