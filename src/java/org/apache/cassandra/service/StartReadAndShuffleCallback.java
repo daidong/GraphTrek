@@ -82,7 +82,7 @@ public class StartReadAndShuffleCallback<TMessage, TResolved> implements IAsyncC
     }
 
     public Set<InetAddress> getAddrs(){
-        if (!awaitRows(this.timeout)){
+        if (!awaitAddrs(this.timeout)){
             throw new AssertionError("Time out exception");
         }
         return addrs;
