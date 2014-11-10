@@ -10,10 +10,13 @@ import java.util.Set;
 
 import org.apache.cassandra.io.IVersionedSerializer;
 import org.apache.cassandra.io.util.DataOutputPlus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StartReadAndShuffleResponse {
-	
-	public static final IVersionedSerializer<StartReadAndShuffleResponse> serializer = new StartReadAndShuffleResponseSerializer();
+    private static final Logger logger = LoggerFactory.getLogger(StartReadAndShuffleResponse.class);
+
+    public static final IVersionedSerializer<StartReadAndShuffleResponse> serializer = new StartReadAndShuffleResponseSerializer();
 
 	private final int id;
     // 0 indicates Good, -1 indicates no element; 1 indicates return address; 2 indicates return rows
@@ -83,11 +86,11 @@ class StartReadAndShuffleResponseSerializer implements IVersionedSerializer<Star
 		} else if (response.status() == 1){
             int addsLen = response.adds().size();
             out.writeInt(addsLen);
+            List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(response.adds());
             for (int i = 0; i < addsLen; i++){
-                List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(response.adds());
-                String ipStr = guessedAllServers.get(i).getHostAddress();
-                out.writeInt(ipStr.length());
-                out.writeBytes(ipStr);
+                byte[] ips = guessedAllServers.get(i).getAddress();
+                out.writeInt(ips.length);
+                out.write(ips, 0, ips.length);
             }
         }
 	}
@@ -131,11 +134,11 @@ class StartReadAndShuffleResponseSerializer implements IVersionedSerializer<Star
 			}
 		} else if (t.status() == 1){
             size += 4;
-            for (int i = 0; i < t.adds().size(); i++){
-                List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(t.adds());
-                String ipStr = guessedAllServers.get(i).getHostAddress();
+            List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(t.adds());
+            for (int i = 0; i < guessedAllServers.size(); i++){
+                byte[] ips = guessedAllServers.get(i).getAddress();
                 size += 4; //out.writeInt(ipStr.length());
-                size += ipStr.length(); //out.writeBytes(ipStr);
+                size += ips.length; //out.writeBytes(ipStr);
             }
         }
 		return size;
