@@ -274,7 +274,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
             			rc.setReadCommandKey(sendKey);
             			ReadCommand withKey = rc.copy();
             			sendReadCommands.add(withKey);
-            			//logger.info("@daidong debug:" + " after read command: " + withKey);
+            			logger.info("@daidong debug:" + " ReceiveStartReadShuffleCommandVerbHandler shuffle command: \n" + withKey + "\nto " + rcTarget);
             		}            		
         		}
         		SendLocalReadCommand lrcommand = new SendLocalReadCommand(travelId, stepId, sendReadCommands);
@@ -282,6 +282,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         	}
         	
         	assert sendLocalReadhandler.get() == distMap.size();
+            logger.info("@daidong debug: " + " ReceiveStartReadShuffleCommandVerbHandler get shuffle replies");
         	tr = new StartReadAndShuffleResponse(travelId, 1, distMap.keySet());
             //tr = new StartReadAndShuffleResponse(travelId, 2, rows);
         }
