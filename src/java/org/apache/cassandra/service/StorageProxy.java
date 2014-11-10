@@ -1255,11 +1255,6 @@ public class StorageProxy implements StorageProxyMBean
         
     	// Second step, send LocalReadCommand to *relevant* servers, wait for replies (before executing)
         // This is different from the real ReadCommand, the server should not do any querying.
-		SendLocalReadCallback<SendLocalReadResponse, Integer> sendLocalReadhandler = new SendLocalReadCallback<>(serverSize);
-		
-		//build the SendLocalReadCommand; currently, we are at step 0;
-		SendLocalReadCommand lrcommand = new SendLocalReadCommand(command.id, 0, startReadCommands);
-
         Set<InetAddress> relevantServers = new HashSet<InetAddress>();
 
         for (ReadCommand testRead : startReadCommands){
@@ -1269,7 +1264,11 @@ public class StorageProxy implements StorageProxyMBean
             relevantServers.addAll(targetReplicas);
 		}
 
-		for (InetAddress endpoint : relevantServers){
+        SendLocalReadCallback<SendLocalReadResponse, Integer> sendLocalReadhandler = new SendLocalReadCallback<>(relevantServers.size());
+        //build the SendLocalReadCommand; currently, we are at step 0;
+        SendLocalReadCommand lrcommand = new SendLocalReadCommand(command.id, 0, startReadCommands);
+
+        for (InetAddress endpoint : relevantServers){
 			//send a special LocalReadCommand to all servers, ask them to store this local read ;
 			MessagingService.instance().sendTM(lrcommand.createMessage(), endpoint, sendLocalReadhandler);
 		}
