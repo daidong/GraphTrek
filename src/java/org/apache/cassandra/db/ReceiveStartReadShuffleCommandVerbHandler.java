@@ -2,11 +2,7 @@ package org.apache.cassandra.db;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.cassandra.concurrent.Stage;
@@ -147,7 +143,22 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         }
 
         StartReadAndShuffleResponse tr;
-        
+
+        if (rows.size() == 0){
+            //we have no rows at all. just return
+            Set<InetAddress> targets = new HashSet<InetAddress>();
+            tr = new StartReadAndShuffleResponse(travelId, 1, targets);
+
+            logger.info("@daidong debug: " + "read nothing, return directly!");
+            MessageOut<StartReadAndShuffleResponse> reply = new MessageOut<StartReadAndShuffleResponse>(
+                    MessagingService.Verb.REQUEST_RESPONSE,
+                    tr,
+                    StartReadAndShuffleResponse.serializer);
+            Tracing.trace("Enqueuing response to {}", message.from);
+            MessagingService.instance().sendReply(reply, id, message.from);
+            return;
+        }
+
         if (stepId == (totalStep - 1)){
         	tr = new StartReadAndShuffleResponse(travelId, 2, rows);
 
@@ -271,7 +282,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         	}
         	
         	assert sendLocalReadhandler.get() == distMap.size();
-        	tr = new StartReadAndShuffleResponse(1, 1, distMap.keySet());
+        	tr = new StartReadAndShuffleResponse(travelId, 1, distMap.keySet());
             //tr = new StartReadAndShuffleResponse(travelId, 2, rows);
         }
 
