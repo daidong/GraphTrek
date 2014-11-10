@@ -245,7 +245,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         		//@TODO @daidong. To keep this correct, we need to always keep replica = 1;
             	List<InetAddress> allReplicas = StorageProxy.getLiveSortedEndpoints(keyspace, k);
         		InetAddress targetServer = allReplicas.subList(0, 1).get(0); 
-        		logger.info("target server for key: " + k.toString() + " address: " + targetServer.toString());
+        		//logger.info("target server for key: " + k.toString() + " address: " + targetServer.toString());
                 
         		if (!distMap.containsKey(targetServer)){
         			List<ByteBuffer> keyToThisServer = new ArrayList<ByteBuffer>();
@@ -274,7 +274,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
             			rc.setReadCommandKey(sendKey);
             			ReadCommand withKey = rc.copy();
             			sendReadCommands.add(withKey);
-            			logger.info("@daidong debug:" + " ReceiveStartReadShuffleCommandVerbHandler shuffle command: \n" + withKey + "\nto " + rcTarget);
+            			//logger.info("@daidong debug:" + " ReceiveStartReadShuffleCommandVerbHandler shuffle command: \n" + withKey + "\nto " + rcTarget);
             		}            		
         		}
         		SendLocalReadCommand lrcommand = new SendLocalReadCommand(travelId, stepId, sendReadCommands);
@@ -282,12 +282,12 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         	}
         	
         	assert sendLocalReadhandler.get() == distMap.size();
-            logger.info("@daidong debug: " + " ReceiveStartReadShuffleCommandVerbHandler get shuffle replies");
+            //logger.info("@daidong debug: " + " ReceiveStartReadShuffleCommandVerbHandler get shuffle replies");
         	tr = new StartReadAndShuffleResponse(travelId, 1, distMap.keySet());
             //tr = new StartReadAndShuffleResponse(travelId, 2, rows);
         }
 
-        logger.info("@daidong debug: " + "local read and shuffle finished!");
+        //logger.info("@daidong debug: " + "local read and shuffle finished!");
         MessageOut<StartReadAndShuffleResponse> reply = new MessageOut<StartReadAndShuffleResponse>(
         															  MessagingService.Verb.REQUEST_RESPONSE,
                                                                       tr,
