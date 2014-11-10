@@ -1274,14 +1274,14 @@ public class StorageProxy implements StorageProxyMBean
 			MessagingService.instance().sendTM(lrcommand.createMessage(), endpoint, sendLocalReadhandler);
 		}
 
-		assert sendLocalReadhandler.get() == serverSize; 
+		assert sendLocalReadhandler.get() == relevantServers.size();
     	
 		// Step 3: after knowing all servers have received the data, hit this loop
     	// send StartReadAndShuffleCommand to all servers, wait for replies, and continues until to the last step of TravelCommand
     	// To return the result, we need to know whether current step is the (readPath-1)th. If yes, do not shuffle, just return
 		for (int step = 0; step < command.readPath.size(); step++){
     		 
-    		StartReadAndShuffleCallback<StartReadAndShuffleResponse, Integer> srashandler = new StartReadAndShuffleCallback<>(serverSize);
+    		StartReadAndShuffleCallback<StartReadAndShuffleResponse, Integer> srashandler = new StartReadAndShuffleCallback<>(relevantServers.size());
 
     		//build the SendLocalReadCommand; currently, we are at step i;
     		StartReadAndShuffleCommand readAndShuffleCommand = new StartReadAndShuffleCommand(command.id, step, command.readPath.size());
