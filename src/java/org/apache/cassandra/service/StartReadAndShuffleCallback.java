@@ -1,7 +1,7 @@
 package org.apache.cassandra.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.net.InetAddress;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -26,8 +26,12 @@ public class StartReadAndShuffleCallback<TMessage, TResolved> implements IAsyncC
 	private final AtomicInteger rowApts = new AtomicInteger(0);	
 	private final SimpleCondition rowCond = new SimpleCondition();
 	private List<Row> finalRows = new ArrayList<Row>();
-	
-	public StartReadAndShuffleCallback(int waits){
+
+    private final AtomicInteger addrApts = new AtomicInteger(0);
+    private final SimpleCondition addrCond = new SimpleCondition();
+    private Set<InetAddress> addrs= new HashSet<InetAddress>();
+
+    public StartReadAndShuffleCallback(int waits){
 		this.waitFor = waits;
 	}
 	
@@ -44,7 +48,23 @@ public class StartReadAndShuffleCallback<TMessage, TResolved> implements IAsyncC
 			if (rowApts.get() >= waitFor){
 				rowCond.signalAll();
 			}
-		} else {
+		} if (response.status() == 1){
+          // we need to aggregate all the servers from different servers
+            addrApts.incrementAndGet();
+            addrs.addAll(response.adds());
+
+            String shuflledAddrs = "";
+            Iterator<InetAddress> iter = response.adds().iterator();
+            while (iter.hasNext()) {
+                InetAddress a = iter.next();
+                shuflledAddrs += (a.getHostAddress() + ":" + a.getHostName());
+            }
+            logger.info("@daidong debug: " + "addrs: " + shuflledAddrs);
+
+            if (addrApts.get() >= waitFor){
+                addrCond.signalAll();
+            }
+        } else {
 			if (response.status() == 0 || response.status() == 1)
 				accepts.incrementAndGet();
 			if (accepts.get() >= waitFor){
@@ -52,6 +72,21 @@ public class StartReadAndShuffleCallback<TMessage, TResolved> implements IAsyncC
 			}
 		}
 	}
+
+    public boolean awaitAddrs(long time){
+        try {
+            return addrCond.await(time, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    public Set<InetAddress> getAddrs(){
+        if (!awaitRows(this.timeout)){
+            throw new AssertionError("Time out exception");
+        }
+        return addrs;
+    }
 
 	public boolean awaitRows(long time){
 		try {
@@ -67,8 +102,8 @@ public class StartReadAndShuffleCallback<TMessage, TResolved> implements IAsyncC
 		}
 		return finalRows;
 	}
-	
-	public boolean await(long time){
+
+    public boolean await(long time){
 		try {
 			return condition.await(time, TimeUnit.SECONDS);
 		} catch (InterruptedException ex) {

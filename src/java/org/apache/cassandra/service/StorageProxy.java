@@ -1232,18 +1232,7 @@ public class StorageProxy implements StorageProxyMBean
         List<ReadCommand> startReadCommands = command.getStartReadCommands();
 
         Set<InetAddress> set = StorageService.instance.getLiveNodesINet();
-
-        //Set<InetAddress> set = new HashSet<InetAddress>();
-
-        /*
-        for (ReadCommand testRead : startReadCommands){
-            Keyspace keyspace = Keyspace.open(testRead.ksName);
-    		List<InetAddress> allReplicas = StorageProxy.getLiveSortedEndpoints(keyspace, testRead.key);
-    		List<InetAddress> targetReplicas = consistencyLevel.filterForQuery(keyspace, allReplicas, ReadRepairDecision.NONE);
-    		set.addAll(targetReplicas);
-		}
-		*/
-		List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(set);
+        List<InetAddress> guessedAllServers = new ArrayList<InetAddress>(set);
 		for (InetAddress s : guessedAllServers)
 			logger.info("@daidong debug: " + "in StorageProxy.executeTravel server: " + s);
 		
@@ -1264,14 +1253,23 @@ public class StorageProxy implements StorageProxyMBean
         assert handler.get() == serverSize;
     	
         
-    	// Second step, send LocalReadCommand to relevant servers, wait for replies (before executing)
-        // This is different from the ReadCommand, the server should not do any querying.
+    	// Second step, send LocalReadCommand to *relevant* servers, wait for replies (before executing)
+        // This is different from the real ReadCommand, the server should not do any querying.
 		SendLocalReadCallback<SendLocalReadResponse, Integer> sendLocalReadhandler = new SendLocalReadCallback<>(serverSize);
 		
 		//build the SendLocalReadCommand; currently, we are at step 0;
 		SendLocalReadCommand lrcommand = new SendLocalReadCommand(command.id, 0, startReadCommands);
 
-		for (InetAddress endpoint : guessedAllServers){
+        Set<InetAddress> relevantServers = new HashSet<InetAddress>();
+
+        for (ReadCommand testRead : startReadCommands){
+            Keyspace keyspace = Keyspace.open(testRead.ksName);
+    		List<InetAddress> allReplicas = StorageProxy.getLiveSortedEndpoints(keyspace, testRead.key);
+    		List<InetAddress> targetReplicas = consistencyLevel.filterForQuery(keyspace, allReplicas, ReadRepairDecision.NONE);
+            relevantServers.addAll(targetReplicas);
+		}
+
+		for (InetAddress endpoint : relevantServers){
 			//send a special LocalReadCommand to all servers, ask them to store this local read ;
 			MessagingService.instance().sendTM(lrcommand.createMessage(), endpoint, sendLocalReadhandler);
 		}
@@ -1288,7 +1286,7 @@ public class StorageProxy implements StorageProxyMBean
     		//build the SendLocalReadCommand; currently, we are at step i;
     		StartReadAndShuffleCommand readAndShuffleCommand = new StartReadAndShuffleCommand(command.id, step, command.readPath.size());
 
-    		for (InetAddress endpoint : guessedAllServers){
+    		for (InetAddress endpoint : relevantServers){
     			//send a special LocalReadCommand to all servers, ask them to store this local read ;
     			MessagingService.instance().sendTM(readAndShuffleCommand.createMessage(), endpoint, srashandler);
     		}
@@ -1296,7 +1294,8 @@ public class StorageProxy implements StorageProxyMBean
         	if (step == (command.readPath.size() - 1)){
         		rows = srashandler.getRows();
         	} else {
-        		assert srashandler.get() == serverSize;
+        		//assert srashandler.get() == serverSize;
+                relevantServers = srashandler.getAddrs();
         	}
     		logger.info("@daidong debug: Send Local Read Commans Success! Move to next loop.");
         }

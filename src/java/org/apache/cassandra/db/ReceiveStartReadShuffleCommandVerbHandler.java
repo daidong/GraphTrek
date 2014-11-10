@@ -150,6 +150,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         
         if (stepId == (totalStep - 1)){
         	tr = new StartReadAndShuffleResponse(travelId, 2, rows);
+
         } else {//shuffle phase.
         	
         	Row r0 = rows.get(0);
@@ -270,7 +271,7 @@ public class ReceiveStartReadShuffleCommandVerbHandler implements IVerbHandler<S
         	}
         	
         	assert sendLocalReadhandler.get() == distMap.size();
-        	tr = new StartReadAndShuffleResponse(1, 1);
+        	tr = new StartReadAndShuffleResponse(1, 1, distMap.keySet());
             //tr = new StartReadAndShuffleResponse(travelId, 2, rows);
         }
 
