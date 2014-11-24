@@ -434,7 +434,7 @@ public abstract class Message
                 QueryState qstate = connection.validateNewMessage(request.type, connection.getVersion(), request.getStreamId());
 
                 logger.debug("Received: {}, v={}", request, connection.getVersion());
-                logger.info("@daidong debug: received " + request + " channel: " + ctx.channel());
+                //logger.info("@daidong debug: received " + request + " channel: " + ctx.channel());
                 response = request.execute(qstate);
                 response.setStreamId(request.getStreamId());
                 response.attach(connection);
