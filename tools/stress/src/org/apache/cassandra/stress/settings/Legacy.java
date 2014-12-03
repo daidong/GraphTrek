@@ -173,12 +173,12 @@ public class Legacy implements Serializable
             if (cmd.hasOption("V"))
             {
                 r.add("-col", "size=uniform(1.." + Integer.parseInt(colSize) * 2 + ")");
-                r.add("-col", "data=rand()");
+                //r.add("-col", "data=rand()");
             }
             else
             {
                 r.add("-col", "size=fixed(" + colSize + ")");
-                r.add("-col", "data=repeat(1)");
+                //r.add("-col", "data=repeat(1)");
             }
             if (cmd.hasOption("Q"))
                 r.add("-col", "names=" + cmd.getOptionValue("Q"));
